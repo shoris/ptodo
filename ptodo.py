@@ -31,27 +31,30 @@ def initialize():
 
 def start_menu():
 	"""Start menu (loop?) with options.""" 
-	while 1: 
-		print "Welcome to ptodo, a very smol todo list app."
-		print "Keep track of tasks for work, school, etc.\n\n"
-		date = datetime.today().strftime('%Y-%m-%d')
-		print "Today is %r\n" % date 
-		print "You have these tasks due:" 
-		# Show tasks due today
-		print "\n"
-		print "What would you like to do?\n"
-		print "A > Add a task\n"
-		print "V > View/Edit/Finish tasks\n"
 
-		answer = raw_input("> ")
-		if answer == "A":
+	print "Welcome to ptodo, a very smol todo list app."
+	print "Keep track of tasks for work, school, etc.\n\n"
+	date = datetime.today().strftime('%Y-%m-%d')
+	print "Today is %r\n" % date 
+	# print "You have these tasks due:" 
+	# Show tasks due today
+	print "\n"
+	print "What would you like to do?\n"
+	print "a) Add a task\n"
+	print "v) View/Edit/Finish tasks\n"
+
+	while 1:
+		answer = raw_input("> ").lower().strip()
+		if answer == "a":
 			# add new todo to database
 			add_task()
 
-		elif answer == "V":
+		elif answer == "v":
 			view_tasks()
-		elif answer == "D":
+		# temporary command so that I can drop and redo table while testing
+		elif answer == "d":
 			Task.drop_table()
+
 		else:
 			print "\nStop entering incorrect characters!"
 
@@ -61,23 +64,70 @@ def view_tasks():
 	"""
 	User can view tasks.
 	"""
-	# Displays tasks for today/or unfinished tasks
-	for task in Task.select():
-		print "\n\n"
-		print task.task_content, task.date_due, task.is_done
-		print "\n\n"
 
-	# List of options:
-	# Finish a task 
-	# Add a task
-	# Delete a task
-	# (More options?)
-	# View all tasks
-	# View unfinished tasks
-	# View finished tasks
-	# View tasks for today
-	# Enter in a date
-	pass 
+	# print "These are your live tasks:"
+	# # Displays tasks for today/or unfinished tasks
+	# for task in Task.select():
+	# 	print "\n\n"
+	# 	print task.task_content, task.date_due, task.is_done
+	# 	print "\n\n"
+
+
+	# show tasks in descending chronological order
+	shown_tasks = Task.select().order_by(Task.date_due.desc())
+	# print shown_tasks
+
+	# stuff I'm copying from tnote and will modify later
+	index = 0
+	size = len(shown_tasks)-1
+
+	while 1:
+
+		task = shown_tasks[index]
+		date = task.date_due.strftime("%A %B %d, %Y %I:%M%p ")
+
+		print "\n" 
+		print task.task_content, date
+		if task.is_done == False:
+			print "NOT FINISHED"
+		if task.is_done == True:
+			print "Finished!"
+		print "\n"
+
+		# tell what task this is
+		print "\n"
+		print "Viewing note " + str(index+1) + " of " + str((size+1))
+		print "\n"
+
+		# options
+		print "n) next task"
+		print "p) previous task"
+		print "d) delete task"
+		print "f) finish task"
+		print "q) to return to the main menu"
+
+
+		# still copied... user input
+		next_action = raw_input("Action: [n/p/d/f/q] : ").lower().strip()
+		if next_action == 'q':
+			start_menu()
+		elif next_action == 'd':
+			# delete_task
+			delete_task(task)
+			size -= 1
+
+		elif next_action == 'n':
+			if (index + 1) <= size:
+				index += 1
+			else:
+				index = size
+		elif next_action == 'p':
+			if index >= 1:
+				index -= 1
+			else:
+				index = 0
+		elif next_action == 'f':
+			finish_task(task)
 
 def add_task():
 	""" 
@@ -100,15 +150,21 @@ def add_task():
 	print todo_string # Will change to colored text with clint later
 	todo = raw_input("> ")
 	if todo:
-		date_string = "When is this task due?"
+		date_string = "When is this task due? (YYYY-mm-dd)"
 		print date_string
 		# reads data entered from the user
-		date = raw_input("> ")
+		date = str(raw_input("> "))
+		# change date to datetime...thing
+		try:
+			dt_start = datetime.strptime(date, '%Y-%m-%d')
+		except ValueError:
+			print "Incorrect format"
 		# if something was entered...
 		if date:
 			Task.create(
 				task_content=todo, date_due=date, is_done=False)
 			print "Saved successfully!"
+			start_menu()
 	else:
 		print "Nothing entered! Press M to return to main menu."
 		choice = raw_input("> ")
@@ -116,20 +172,25 @@ def add_task():
 			start_menu()
 
 
-def finish_task():
+def finish_task(task):
 	"""
 	User 'crosses out' a task
 	Sets is_done to True
+	Called in view_tasks()
 	"""
-	pass
+	print "Finish this entry? y/n"
+	if raw_input("> ").lower().strip() == 'y':
+		task.is_done = True
 
-def delete_task():
+
+def delete_task(task):
 	"""
 	Deletes task from  database.
 	"""
-	pass 
-
-
+	print "Are you sure you want to delete this task? y/n"
+	if raw_input("> ").lower().strip() == 'y':
+		task.delete_instance()
+		print "Deleted!"
 
 if __name__ == "__main__":
 	initialize()
