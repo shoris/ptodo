@@ -3,6 +3,7 @@ import os
 
 from peewee import *
 from datetime import *
+import time
 from clint.textui import colored, puts
 
 db = SqliteDatabase('tasks.py')
@@ -18,7 +19,6 @@ class Task(Model):
 	task_content = TextField()
 	date_due = DateField()
 	is_done = BooleanField()
-	# task_category = CharField()
 
 	class Meta:
 		database = db 
@@ -36,8 +36,7 @@ def start_menu():
 	print "Keep track of tasks for work, school, etc.\n\n"
 	date = datetime.today().strftime('%Y-%m-%d')
 	print "Today is %r\n" % date 
-	# print "You have these tasks due:" 
-	# Show tasks due today
+	# print "You have these tasks due >> Show tasks due today
 	print "\n"
 	print "What would you like to do?\n"
 	print "a) Add a task\n"
@@ -64,20 +63,11 @@ def view_tasks():
 	"""
 	User can view tasks.
 	"""
-
-	# print "These are your live tasks:"
-	# # Displays tasks for today/or unfinished tasks
-	# for task in Task.select():
-	# 	print "\n\n"
-	# 	print task.task_content, task.date_due, task.is_done
-	# 	print "\n\n"
-
-
 	# show tasks in descending chronological order
 	shown_tasks = Task.select().order_by(Task.date_due.desc())
 	# print shown_tasks
 
-	# stuff I'm copying from tnote and will modify later
+	# makes tasks into list and displays tasks
 	index = 0
 	size = len(shown_tasks)-1
 
@@ -107,7 +97,7 @@ def view_tasks():
 		print "q) to return to the main menu"
 
 
-		# still copied... user input
+		# user input
 		next_action = raw_input("Action: [n/p/d/f/q] : ").lower().strip()
 		if next_action == 'q':
 			start_menu()
@@ -134,17 +124,6 @@ def add_task():
 	User names a task with a deadline (date), detail/tontent,
 	and is_done boolean is automatically set to False
 	"""
-	# get info from user
-	# print "What do you need to get done? (Y-m-d)"
-	# task_title = raw_input("> ")
-	# print "On what date is it due?"
-	# date_task = raw_input("> ")
-	# print "Category?"
-	# new_category = raw_input("> ")
-
-	# task1 = Task.create(task_content=task_title, date_due=date_task, task_category=new_category, is_done=False)
-	# task1.save()
-
 	
 	todo_string = "Enter in your task (press enter when finished):"
 	print todo_string # Will change to colored text with clint later
